@@ -30,6 +30,7 @@ def build_exe():
         "--add-data=icon.ico;.",
         "--add-data=LICENSE;.",
         "--add-data=README.md;.",
+        "--add-data=assets;assets",
         "--hidden-import=PySimpleGUI",
         "--hidden-import=cryptography",
         "--hidden-import=wizwalker",

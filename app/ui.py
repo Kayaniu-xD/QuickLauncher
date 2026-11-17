@@ -19,6 +19,7 @@ from typing import Dict, List, Optional
 
 import PySimpleGUI as sg
 
+from app import mascot
 from core.config import APP_NAME, APP_VERSION, PUBLISHERS, REGION_META
 from security.crypto import Account, account_display
 from services.playtime_tracker import PlaytimeTracker
@@ -515,7 +516,16 @@ def build_accounts_tab(account_list: List[str]) -> List:
                   pad=(8, (2, 6)))],
         [_btn("Add", kind="success"), _btn("Edit", kind="warn"), _btn("Delete", kind="danger")],
     ], accent=P["green"])
-    return _page([[card]])
+
+    row = [card]
+    first = mascot.first_frame()
+    if first:
+        row.append(sg.Column(
+            [[sg.Image(filename=first, key="-MASCOT-", background_color=P["panel"],
+                       pad=((14, 6), (6, 0)))]],
+            background_color=P["panel"], pad=(0, 0), vertical_alignment="top",
+        ))
+    return _page([row])
 
 
 def build_settings_tab(config: dict) -> List:
@@ -1115,6 +1125,8 @@ def build_window(config: dict, accounts: List[Account], log_file_path: Optional[
         window[f"-NAVCHIP-{cid}-"].Widget.configure(anchor="center")
 
     _style_inputs(window)
+    if "-MASCOT-" in window.AllKeysDict:
+        mascot.start_animation(window)
 
     # Don't let the search box grab the initial focus (that would wipe its placeholder)
     window.TKroot.focus_set()

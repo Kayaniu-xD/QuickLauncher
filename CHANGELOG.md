@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v0.3.6 (2026-11-17)
+### Added
+- Animated dancing mascot (Konata from Lucky Star, green screen removed) next to the account list; frames live in `assets/mascot/` and are bundled into the exe.
+
 ## v0.3.5 (2026-11-17)
 ### Changes
 - Releases contain **only** `QuickLauncher-Setup-<version>.exe`; the plain `QuickLauncher.exe` is no longer uploaded (and the workflow fails if it ever is).

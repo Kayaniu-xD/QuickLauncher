@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Dict, Any
 
 APP_NAME = "QuickLauncher"
-APP_VERSION = "0.3.5"
+APP_VERSION = "0.3.6"
 
 # Where updates / issue reports go. (Older configs pointed at the upstream author's repo.)
 DEFAULT_GITHUB_REPO = "Kayaniu-xD/QuickLauncher"
