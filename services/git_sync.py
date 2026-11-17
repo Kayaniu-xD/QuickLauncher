@@ -15,6 +15,7 @@ import re
 import shutil
 import subprocess
 import sys
+import threading
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -56,6 +57,10 @@ class GitSync:
         self.logger = logging.getLogger("git")
         self.repo_dir = Path(repo_dir)
         self.git = git_executable or shutil.which("git")
+        # The UI runs git in worker threads. Two git processes touching the same
+        # repo at once (e.g. a status fetch during a pull) fail with
+        # "cannot lock ref", so every command takes this lock.
+        self._lock = threading.RLock()
 
     # ------------------------------------------------------------------ basics
     @classmethod
@@ -73,17 +78,18 @@ class GitSync:
         env = dict(os.environ, GIT_TERMINAL_PROMPT="0", GCM_INTERACTIVE="never")
         creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
         try:
-            proc = subprocess.run(
-                [self.git, *args],
-                cwd=str(self.repo_dir),
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                timeout=timeout,
-                env=env,
-                creationflags=creationflags,
-            )
+            with self._lock:
+                proc = subprocess.run(
+                    [self.git, *args],
+                    cwd=str(self.repo_dir),
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    timeout=timeout,
+                    env=env,
+                    creationflags=creationflags,
+                )
         except subprocess.TimeoutExpired as exc:
             raise GitError(f"git {args[0]} timed out after {timeout}s.") from exc
         return proc.returncode, proc.stdout.strip(), proc.stderr.strip()
