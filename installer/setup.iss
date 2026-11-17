@@ -66,7 +66,10 @@ Name: "{group}\Uninstall {#AppName}";  Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#AppName}";      Filename: "{app}\{#AppExe}"; WorkingDir: "{app}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; WorkingDir: "{app}"; Flags: nowait postinstall skipifsilent runasoriginaluser
+; Started through cmd so PYINSTALLER_RESET_ENVIRONMENT=1 reaches the exe. "runasoriginaluser"
+; launches from the FIRST (non-elevated) setup process, whose environment still holds the old
+; launcher's PyInstaller variables when the update was started from inside QuickLauncher.
+Filename: "{cmd}"; Parameters: "/C ""set PYINSTALLER_RESET_ENVIRONMENT=1& start """" ""{app}\{#AppExe}"""""; Description: "{cm:LaunchProgram,{#AppName}}"; WorkingDir: "{app}"; Flags: nowait postinstall skipifsilent runasoriginaluser runhidden
 
 [Code]
 // The launcher is a PyInstaller one-file exe. If this installer was started by an

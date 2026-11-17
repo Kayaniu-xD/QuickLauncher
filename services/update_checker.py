@@ -97,7 +97,7 @@ class UpdateChecker:
         A PyInstaller one-file exe unpacks itself into a temp folder and tells every
         child process about it through _PYI_* / _MEIPASS2 variables. A child that
         inherits them tries to reuse that folder - which is deleted as soon as this
-        process exits - and fails with "Failed to load Python DLL ...\python312.dll".
+        process exits - and fails with "Failed to load Python DLL (python312.dll)".
         Dropping those variables and asking the bootloader to reset makes the new
         exe start as a completely fresh process.
         """
