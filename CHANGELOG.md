@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v0.3.5 (2026-11-17)
+### Changes
+- Releases contain **only** `QuickLauncher-Setup-<version>.exe`; the plain `QuickLauncher.exe` is no longer uploaded (and the workflow fails if it ever is).
+
 ## v0.3.4 (2026-11-17)
 ### Changes
 - The release workflow now verifies that the Setup installer is attached to the release for the pushed commit and fails loudly otherwise.

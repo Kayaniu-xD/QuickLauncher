@@ -2,6 +2,7 @@ name: Build and release
 
 # Every push to main builds the exe + Setup installer and publishes them on the
 # GitHub release "v<APP_VERSION>" (APP_VERSION lives in core/config.py).
+# ONLY the Setup installer is uploaded - never the plain QuickLauncher.exe.
 #  - same version  -> the release's files are replaced with the fresh build
 #  - bumped version -> a new release is created, and the in-app Update button
 #    offers it to everyone on an older version
@@ -57,13 +58,11 @@ jobs:
           $v = python -c "from core.config import APP_VERSION; print(APP_VERSION)"
           "version=$v" >> $env:GITHUB_OUTPUT
 
-      - name: Keep the build files as a workflow artifact
+      - name: Keep the Setup as a workflow artifact
         uses: actions/upload-artifact@v4
         with:
-          name: QuickLauncher-${{ steps.ver.outputs.version }}
-          path: |
-            dist/QuickLauncher.exe
-            dist/QuickLauncher-Setup-${{ steps.ver.outputs.version }}.exe
+          name: QuickLauncher-Setup-${{ steps.ver.outputs.version }}
+          path: dist/QuickLauncher-Setup-${{ steps.ver.outputs.version }}.exe
 
       - name: Publish release
         if: github.event_name != 'pull_request'
@@ -74,19 +73,20 @@ jobs:
           $version = "${{ steps.ver.outputs.version }}"
           $tag = "v$version"
           $setup = "dist/QuickLauncher-Setup-$version.exe"
-          $portable = "dist/QuickLauncher.exe"
           $notes = "Automated build of commit $($env:GITHUB_SHA.Substring(0,7)).`n`n" +
-                   "- **QuickLauncher-Setup-$version.exe** - installer (recommended)`n" +
-                   "- **QuickLauncher.exe** - portable, no installation"
+                   "Download **QuickLauncher-Setup-$version.exe** and run it."
 
           gh release view $tag *> $null
           if ($LASTEXITCODE -eq 0) {
             # Same version again: point the tag at this commit and replace the files.
             gh api -X PATCH "repos/$env:GITHUB_REPOSITORY/git/refs/tags/$tag" -f sha=$env:GITHUB_SHA -F force=true | Out-Null
-            gh release upload $tag $setup $portable --clobber
+            gh release upload $tag $setup --clobber
             gh release edit $tag --notes $notes --latest
+            # Older builds of this version may still carry the plain exe: remove it.
+            gh release delete-asset $tag QuickLauncher.exe --yes *> $null
+            $global:LASTEXITCODE = 0   # ("asset not found" is fine)
           } else {
-            gh release create $tag $setup $portable --target $env:GITHUB_SHA `
+            gh release create $tag $setup --target $env:GITHUB_SHA `
               --title "QuickLauncher v$version" --notes $notes --latest
           }
           if ($LASTEXITCODE -ne 0) { throw "Publishing the release failed" }
@@ -107,6 +107,7 @@ jobs:
           $setup = $assets | Where-Object { $_.name -eq $expected }
           if (-not $setup) { throw "Release $tag has no $expected (found: $($assets.name -join ', '))" }
           if ($setup.size -lt 5MB) { throw "$expected is only $($setup.size) bytes - the upload looks broken" }
+          if ($assets.name -contains "QuickLauncher.exe") { throw "Release $tag must contain only the Setup, but QuickLauncher.exe is attached" }
 
           $tagSha = gh api "repos/$env:GITHUB_REPOSITORY/git/ref/tags/$tag" --jq .object.sha
           if ($tagSha -ne $env:GITHUB_SHA) { throw "Tag $tag points at $tagSha, not at this commit ($env:GITHUB_SHA)" }

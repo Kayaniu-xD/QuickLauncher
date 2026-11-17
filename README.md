@@ -1,4 +1,4 @@
-# QuickLauncher v0.3.4
+# QuickLauncher v0.3.5
 
 Open source Wizard101 launcher with quick start, multi-instance, auto-login, playtime tracking, multi-window management, and extensible wizwalker integrations.
 
@@ -51,7 +51,6 @@ Open source Wizard101 launcher with quick start, multi-instance, auto-login, pla
 **Pre-built Executable** (no Python required):
 - Download `QuickLauncher-Setup-<version>.exe` from the [Releases](https://github.com/Kayaniu-xD/QuickLauncher/releases) page and run it
   (installs to Program Files; all your data stays in the install folder's `data` and `logs` folders)
-- Or download the portable `QuickLauncher.exe` - no installation needed
 - All dependencies included
 
 **From Source** (for developers):
@@ -136,7 +135,7 @@ Accounts, `config.json` and logs are in `.gitignore` and are never committed.
 
 ## Automatic releases
 
-Every push to `main` builds the exe and the Setup installer on GitHub Actions and attaches them to the release `v<APP_VERSION>` (`APP_VERSION` is in `core/config.py`). Same version = the files of that release are replaced; **bump `APP_VERSION` to publish a new release** - the in-app *Update* button then offers it to everyone on an older version. The build runs from the repository, so it never contains your local accounts or settings. A final workflow step **verifies** that `QuickLauncher-Setup-<version>.exe` is really attached to the release and that the release tag points at the pushed commit - if not, the run fails (red) instead of silently shipping a release without the Setup.
+Every push to `main` builds the Setup installer on GitHub Actions and attaches **only the Setup** (no separate exe) to the release `v<APP_VERSION>` (`APP_VERSION` is in `core/config.py`). Same version = the files of that release are replaced; **bump `APP_VERSION` to publish a new release** - the in-app *Update* button then offers it to everyone on an older version. The build runs from the repository, so it never contains your local accounts or settings. A final workflow step **verifies** that `QuickLauncher-Setup-<version>.exe` is really attached to the release and that the release tag points at the pushed commit - if not, the run fails (red) instead of silently shipping a release without the Setup.
 
 ## Credits
 
