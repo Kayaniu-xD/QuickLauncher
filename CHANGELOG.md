@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v0.3.15 (2026-11-17)
+### Fixed
+- After an install/update Explorer sometimes kept showing the old cached icon on shortcuts. The Setup now tells Explorer to refresh its icons when it finishes.
+
 ## v0.3.14 (2026-11-17)
 ### Changes
 - The wizard icon is also shown in the launcher's sidebar (instead of the "+" tile).

@@ -37,6 +37,9 @@ PrivilegesRequiredOverridesAllowed=dialog
 ; Close a running launcher instead of failing on the locked exe when upgrading.
 CloseApplications=yes
 RestartApplications=no
+; Makes Setup tell Explorer to refresh its icons at the end, so shortcuts/exe show the
+; new icon right away instead of a stale cached one.
+ChangesAssociations=yes
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
