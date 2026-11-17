@@ -106,6 +106,14 @@ python main.py
 - [Configuration Reference](documentation/CONFIGURATION.md) - All config options
 - [Playtime Tracker](PLAYTIME_TRACKER.md) - Session tracking details
 
+## Backup & restore
+
+**Settings > Backup** exports your settings and accounts into one `.qlbackup` file, e.g. to move to a new PC.
+
+- **Export** asks for your current master password. The whole file is encrypted with it (PBKDF2 + Fernet, like the accounts file) - nothing in it is readable without the password. Keep the file and the password safe.
+- **Import** asks for the password the backup was made with, then lets you *add missing accounts* (keeps your existing ones) or *replace all accounts*, and optionally import the settings. Accounts are re-saved under **your own** master password, so a new PC can keep a different one.
+- A backup file is treated as untrusted: install paths, login servers, launch arguments, the update source and Discord webhooks are **never** imported.
+
 ## Updating & Git sync
 
 Open **Update** in the menu.
