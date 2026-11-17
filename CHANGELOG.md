@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## v0.3.11 (2026-11-17)
+### Changes
+- The mascot is centred in the whole window (not only the content area) and her height follows the window: she fits a normal window and grows to the window size when maximised / fullscreen (scaled with GDI+).
+### Fixed
+- The mascot is now kept directly above the launcher window in the z-order, so it can no longer end up hidden behind it.
+
 ## v0.3.10 (2026-11-17)
 ### Changes
 - The mascot is twice as big (658x742 px). It is clipped to the launcher window, so it never hangs out over the desktop.
