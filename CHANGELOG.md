@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## v0.3.10 (2026-11-17)
+### Changes
+- The mascot is twice as big (658x742 px). It is clipped to the launcher window, so it never hangs out over the desktop.
+### Fixed
+- Maximising the window made the mascot vanish and left a white box; the overlay now keeps following and animating in the maximised state too.
+
 ## v0.3.9 (2026-11-17)
 ### Fixed
 - The "Failed to load Python DLL" error after an update is now fixed for real: the Setup starts QuickLauncher through a small `cmd` wrapper that resets the PyInstaller environment. 0.3.8 set that flag inside the elevated installer, but the "launch QuickLauncher" step runs from the non-elevated first process, which never saw it.

@@ -171,12 +171,17 @@ class MascotOverlay:
             return
         try:
             ctypes.memmove(self.bits, zlib.decompress(self.blobs[self.i]), self.w * self.h * 4)
-            a = self.area
+            a, r = self.area, self.root
             x = a.winfo_rootx() + (a.winfo_width() - self.w) // 2
             y = a.winfo_rooty() + (a.winfo_height() - self.h) // 2
-            pos = wintypes.POINT(x, y)
-            size = wintypes.SIZE(self.w, self.h)
-            src = wintypes.POINT(0, 0)
+            # Only show the part that lies inside the launcher window, so a big sprite
+            # never hangs out over the desktop when the window is small.
+            left, top = max(x, r.winfo_rootx()), max(y, r.winfo_rooty())
+            right = min(x + self.w, r.winfo_rootx() + r.winfo_width())
+            bottom = min(y + self.h, r.winfo_rooty() + r.winfo_height())
+            pos = wintypes.POINT(left, top)
+            size = wintypes.SIZE(max(right - left, 1), max(bottom - top, 1))
+            src = wintypes.POINT(left - x, top - y)
             blend = _BLENDFUNCTION(0, 0, self.alpha, _AC_SRC_ALPHA)
             self.user32.UpdateLayeredWindow(
                 self.hwnd, self.screen_dc, ctypes.byref(pos), ctypes.byref(size),
@@ -188,7 +193,7 @@ class MascotOverlay:
         if self.dead:
             return
         try:
-            if self.root.winfo_exists() and self.root.state() == "normal":
+            if self.root.winfo_exists() and self.root.state() in ("normal", "zoomed"):
                 # Tk hides transient windows with the launcher and does not always bring
                 # them back (minimise/restore, tray), so show it again when needed.
                 self._setup_window()
