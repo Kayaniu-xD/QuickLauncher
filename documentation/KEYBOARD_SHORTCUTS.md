@@ -82,7 +82,7 @@ Auto-Update Checking
 Check for new releases automatically:
 
 Enabled by default. Connect to:
-https://github.com/oliwi/q-launcher/releases
+https://github.com/Kayaniu-xD/QuickLauncher/releases
 
 Checks weekly for new versions.
 Manual update checking in Settings tab (future).

@@ -49,8 +49,9 @@ Open source Wizard101 launcher with quick start, multi-instance, auto-login, pla
 ## Download
 
 **Pre-built Executable** (no Python required):
-- Download `QuickLauncher.exe` from the [Releases](https://github.com/oliwi/q-launcher/releases) page
-- Run directly - no installation needed
+- Download `QuickLauncher-Setup-<version>.exe` from the [Releases](https://github.com/Kayaniu-xD/QuickLauncher/releases) page and run it
+  (installs to Program Files; all your data stays in the install folder's `data` and `logs` folders)
+- Or download the portable `QuickLauncher.exe` - no installation needed
 - All dependencies included
 
 **From Source** (for developers):
@@ -67,7 +68,8 @@ See Installation section below
 ### Option 2: From Source
 ```bash
 # Clone or download the repository
-cd q-launcher
+git clone https://github.com/Kayaniu-xD/QuickLauncher.git
+cd QuickLauncher
 
 # Create virtual environment (optional but recommended)
 python -m venv .venv
@@ -105,6 +107,17 @@ python main.py
 - [UI Overview](documentation/UI_UPDATE.md) - Region management and UI features
 - [Playtime Tracker](PLAYTIME_TRACKER.md) - Session tracking details
 - [Code Structure](documentation/REFACTORING.md) - Module organization
+
+## Updating & Git sync
+
+Open **Update** in the menu.
+
+- **Check for updates / Update now** - compares your version with the latest GitHub release of `github_repo` (default `Kayaniu-xD/QuickLauncher`). With the installed app it downloads the new Setup and runs it (your accounts and settings are kept). Turn off *Check for updates on start* to stop the automatic check.
+- **Git sync** (only when running from a `git clone`): set the remote, **Pull** (fast-forward only, never rewrites your work), **Push**, or **Commit & push** in one click.
+  - *Auto-pull on start*: fast-forward pull every time the launcher starts.
+  - *Auto-push after every commit*: installs a `post-commit` git hook that pushes in the background. Switching it off removes the hook; a hook of your own is never overwritten.
+
+Accounts, `config.json` and logs are in `.gitignore` and are never committed.
 
 ## Project Structure
 

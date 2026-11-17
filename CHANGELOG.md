@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+### New Features
+- **Update page** in the menu: check GitHub releases, update the installed app with one click (downloads and runs the Setup), or `git pull` when running from a checkout.
+- **Git sync**: set remote, pull (fast-forward only), push, commit & push; optional auto-pull on start and auto-push via a `post-commit` hook.
+- Windows installer (`QuickLauncher-Setup-<version>.exe`), data kept in the install folder.
+- Change the master password in Settings; show-password option in the account dialog.
+- New dashboard design, dark grey / light themes, green/black icon.
+- Login-screen detection and Tab/Enter key handling for auto-login.
+### Changes
+- Renamed to **QuickLauncher**. Update source now defaults to `Kayaniu-xD/QuickLauncher` (old configs pointing at `oliwi/q-launcher` are migrated).
+- `config.json` and exports moved into the `data` folder (an existing config is copied over once).
+
 ## v0.3.0 (2026-02-16) - Multi-Window Manager & App Icon
 ### ✨ New Features
 - **Multi-Window Manager**: Arrange multiple Wizard101 windows in grid layouts
