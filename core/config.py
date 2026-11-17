@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Dict, Any
 
 APP_NAME = "QuickLauncher"
-APP_VERSION = "0.3.11"
+APP_VERSION = "0.3.12"
 
 # Where updates / issue reports go. (Older configs pointed at the upstream author's repo.)
 DEFAULT_GITHUB_REPO = "Kayaniu-xD/QuickLauncher"
@@ -39,7 +39,7 @@ DEFAULT_CONFIG = {
     "extra_args": [],
     
     # Launch settings
-    "login_wait_seconds": 5,
+    "login_wait_seconds": 2,
     "foreground_on_login": True,
     "set_window_title": True,
     "window_title_template": "{name} ({username})",

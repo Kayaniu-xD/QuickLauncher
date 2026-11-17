@@ -165,7 +165,7 @@ async def send_login(
     handle: int,
     username: str,
     password: str,
-    step_delay: float = 0.15,
+    step_delay: float = 0.1,
     submit: bool = True,
 ) -> None:
     """
@@ -200,7 +200,7 @@ async def send_login(
         press(VK_ENTER)                        # like Tab: ignored as a plain character
 
 
-async def _wait_for_login_screen(handle: int, timeout: float, poll: float = 0.5) -> Optional[bool]:
+async def _wait_for_login_screen(handle: int, timeout: float, poll: float = 0.2) -> Optional[bool]:
     """
     Wait until the login dialog is really on screen (seen on two checks in a row).
 
@@ -224,7 +224,7 @@ async def _wait_for_login_screen(handle: int, timeout: float, poll: float = 0.5)
     return False if captured_once else None
 
 
-async def _wait_for_login_result(handle: int, timeout: float = 20.0, poll: float = 0.5) -> str:
+async def _wait_for_login_result(handle: int, timeout: float = 20.0, poll: float = 0.25) -> str:
     """
     Watch the game after Enter was pressed.
 
@@ -261,7 +261,7 @@ async def login_when_ready(handle: int, account: Account, config: dict) -> bool:
     """
     logger = logging.getLogger("launcher")
     timeout = float(config.get("login_screen_timeout_seconds", 90))
-    fallback_wait = float(config.get("login_wait_seconds", 5))
+    fallback_wait = float(config.get("login_wait_seconds", 2))
 
     found = await _wait_for_login_screen(handle, timeout)
     if found is None:
@@ -278,7 +278,7 @@ async def login_when_ready(handle: int, account: Account, config: dict) -> bool:
         return False
     else:
         logger.info("Login screen detected for %s (handle=%s)", account.name, handle)
-        await asyncio.sleep(1.0)  # let the username field take focus
+        await asyncio.sleep(0.4)  # let the username field take focus
 
     await send_login(handle, account.username, account.password)
     logger.info("Credentials sent for %s (handle=%s)", account.name, handle)
@@ -319,7 +319,7 @@ async def start_instances_with_login(
         new_handles = set(get_wizard_handles_safe()).difference(start_handles)
         if len(new_handles) >= expected:
             break
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.2)
 
     if not new_handles:
         logger.error("No Wizard101 window appeared - auto-login aborted")

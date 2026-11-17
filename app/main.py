@@ -68,7 +68,7 @@ from services.launcher import (
 )
 from core.logging_utils import setup_logging
 from services.playtime_tracker import PlaytimeTracker
-from app.ui import apply_theme, build_window, handle_nav_event
+from app.ui import apply_theme, build_window, handle_nav_event, resolve_icon_path
 from services.performance_monitor import PerformanceMonitor
 from integrations.discord_integration import DiscordIntegration
 from integrations.discord_presence import DiscordRichPresence, RollingActivity24h
@@ -212,7 +212,7 @@ def detect_new_handles(
     before_handles: set,
     expected_count: int,
     timeout_seconds: float,
-    poll_interval_seconds: float = 0.5,
+    poll_interval_seconds: float = 0.2,
 ) -> list:
     """Poll for newly started Wizard101 handles until timeout or expected count is reached."""
     deadline = time.time() + timeout_seconds
@@ -297,45 +297,22 @@ def sync_discord_presence_config(
     if discord_presence.client_id != effective_client_id:
         discord_presence.close()
         discord_presence.client_id = effective_client_id
-def start_and_track_sessions(
-    config: dict,
-    selected_accounts: list,
-    count: int,
-    tracker: PlaytimeTracker,
-    active_sessions: dict,
-    paths: dict,
-    master_password: str,
-    accounts: list,
-    discord: DiscordIntegration = None,
-) -> None:
+def launch_and_detect(config: dict, selected_accounts: list, count: int) -> dict:
     """
-    Start game instances with auto-login and track playtime sessions.
+    Start the game instances (with auto-login) and wait for their windows to appear.
 
-    Process:
-    1. Get current Wizard101 process handles before launch
-    2. Launch instances with auto-login
-    3. Detect new processes (with retry polling)
-    4. Start tracking each session
-    5. Send Discord notification (if configured)
-
-    Args:
-        config: Application configuration
-        selected_accounts: List of Account objects to start
-        count: Number of instances to start
-        tracker: PlaytimeTracker instance
-        active_sessions: Dict to store {handle: account_username}
-        paths: Dictionary from get_paths()
-        master_password: Master password for account decryption
-        accounts: All available accounts
-        discord: DiscordIntegration instance (optional)
+    This blocks for as long as the game needs to open a window (several seconds), so it
+    must run in a worker thread (window.perform_long_operation), never in the UI thread.
+    Returns the new window handles for register_started_sessions().
     """
     logger = logging.getLogger("launcher")
+    accounts_to_start = selected_accounts[:count]
 
-    # Get current handles before starting
+    # Window handles that exist before the launch, to recognise the new ones afterwards
     before_handles = set(get_wizard_handles_safe())
 
-    # Start the instances
-    launch_with_login(selected_accounts[:count], count, config)
+    # Start the instances (the login itself continues in its own thread)
+    launch_with_login(accounts_to_start, count, config)
 
     # Poll for new handles because client startup time can vary significantly.
     detection_timeout = float(config.get("handle_detect_timeout_seconds", 15))
@@ -343,18 +320,37 @@ def start_and_track_sessions(
 
     if not new_handles:
         logger.warning("No new Wizard101 handles detected for playtime tracking")
-        return
-
-    if len(new_handles) < count:
+    elif len(new_handles) < count:
         logger.warning(
             "Detected only %s/%s new handles; tracking available sessions only",
             len(new_handles),
             count,
         )
+    return {
+        "handles": list(new_handles),
+        "usernames": [acc.username for acc in accounts_to_start],
+        "count": count,
+    }
 
-    for handle, account in zip(new_handles, selected_accounts[:count]):
+
+def register_started_sessions(
+    result: dict,
+    config: dict,
+    tracker: PlaytimeTracker,
+    active_sessions: dict,
+    accounts: list,
+    discord: DiscordIntegration = None,
+) -> int:
+    """Start playtime tracking for the windows found by launch_and_detect (UI thread)."""
+    logger = logging.getLogger("launcher")
+    started = 0
+    for handle, username in zip(result.get("handles", []), result.get("usernames", [])):
+        account = get_account_by_username(accounts, username)
+        if account is None:
+            continue
         track_session_start(tracker, handle, account.username)
         active_sessions[handle] = account.username
+        started += 1
         logger.info(
             "Playtime session started: account=%s username=%s handle=%s",
             account.name,
@@ -368,6 +364,24 @@ def start_and_track_sessions(
                 account.username,
                 config.get("current_region", "de"),
             )
+    return started
+
+
+def start_and_track_sessions(
+    config: dict,
+    selected_accounts: list,
+    count: int,
+    tracker: PlaytimeTracker,
+    active_sessions: dict,
+    paths: dict,
+    master_password: str,
+    accounts: list,
+    discord: DiscordIntegration = None,
+) -> None:
+    """Blocking variant (launch, wait for the windows, track). The UI uses begin_auto_login()."""
+    result = launch_and_detect(config, selected_accounts, count)
+    register_started_sessions(result, config, tracker, active_sessions, accounts, discord)
+
 
 def main() -> int:
     """
@@ -406,6 +420,11 @@ def main() -> int:
     
     # Apply UI theme
     apply_theme(config)
+
+    # One icon for every window, including the master-password prompt shown below
+    app_icon = resolve_icon_path(config)
+    if app_icon:
+        sg.set_global_icon(app_icon)
     
     # Get logger for this module
     logger = logging.getLogger("launcher")
@@ -494,6 +513,21 @@ def main() -> int:
     # Git checkout (source install) or None (installed exe): enables the Git sync card
     git_sync = GitSync.for_app(paths["root"])
     pending_update = None  # update info from the last successful check
+    auto_login_busy = {"on": False}  # True while a launch is waiting for its game windows
+
+    def begin_auto_login(win, vals, cfg, chosen_accounts, source):
+        """Start the game + auto-login in a worker thread so the window never freezes."""
+        if auto_login_busy["on"]:
+            win["-STATUS-"].update("Still starting the previous instances, one moment...")
+            return
+        count = len(chosen_accounts)
+        cfg["foreground_on_login"] = vals.get("-FOREGROUND-", True)
+        cfg["set_window_title"] = vals.get("-SETTITLE-", True)
+        auto_login_busy["on"] = True
+        win["-STATUS-"].update(f"Starting {count} account(s) with auto-login...")
+        chosen = list(chosen_accounts)
+        win.perform_long_operation(
+            lambda: launch_and_detect(dict(cfg), chosen, count), "-AUTO-LAUNCH-DONE-")
 
     # Start-up tasks run in the background so the window opens immediately
     if git_sync and config.get("git_auto_pull"):
@@ -824,21 +858,21 @@ def main() -> int:
                 sg.popup("Select at least one account to start with auto-login", title=APP_NAME)
                 continue
 
-            count = len(selected_accounts)
-            config["foreground_on_login"] = values.get("-FOREGROUND-", True)
-            config["set_window_title"] = values.get("-SETTITLE-", True)
-            start_and_track_sessions(
-                config,
-                selected_accounts,
-                count,
-                tracker,
-                active_sessions,
-                paths,
-                master_password,
-                accounts,
-                discord,
-            )
-            window["-STATUS-"].update(f"Started {count} account(s) with auto-login + tracking")
+            begin_auto_login(window, values, config, selected_accounts, "button")
+
+        # Game windows found after "Start + Auto Login" / F3: start playtime tracking
+        if event == "-AUTO-LAUNCH-DONE-":
+            auto_login_busy["on"] = False
+            result = values[event]
+            if isinstance(result, dict):
+                started = register_started_sessions(
+                    result, config, tracker, active_sessions, accounts, discord)
+                window["-STATUS-"].update(
+                    f"Started {result['count']} account(s) with auto-login + tracking"
+                    if started else "Launched, but no game window was detected for tracking")
+            else:
+                window["-STATUS-"].update("Auto-login launch failed - see the log")
+            continue
 
         # Add account
         if event == "Add":
@@ -1294,21 +1328,7 @@ def main() -> int:
                 if not selected_accounts:
                     sg.popup("Select at least one account for auto-login (F3)", title=APP_NAME)
                 else:
-                    count = len(selected_accounts)
-                    config["foreground_on_login"] = values.get("-FOREGROUND-", True)
-                    config["set_window_title"] = values.get("-SETTITLE-", True)
-                    start_and_track_sessions(
-                        config,
-                        selected_accounts,
-                        count,
-                        tracker,
-                        active_sessions,
-                        paths,
-                        master_password,
-                        accounts,
-                        discord,
-                    )
-                    window["-STATUS-"].update(f"Started {count} account(s) with auto-login (F3)")
+                    begin_auto_login(window, values, config, selected_accounts, "F3")
 
         # F4 - Minimize to tray (or toggle window visibility)
         if event == "F4":

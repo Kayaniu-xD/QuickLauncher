@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## v0.3.12 (2026-11-17)
+### Changes
+- New app icon (wizard with staff). It is used for the exe, the installer and every window, including the master-password prompt.
+- Auto-login reacts faster: shorter polling and pauses (game window every 0.2 s instead of 0.5 s, login screen check 0.2 s, 0.4 s instead of 1 s before typing, 0.1 s between key steps). The fixed fallback "Login wait seconds" now defaults to 2 s instead of 5 s (only used when the login screen cannot be detected).
+### Fixed
+- "Start + Auto Login" (button and F3) no longer freezes the launcher for several seconds: waiting for the game windows now happens in the background and the status bar shows the progress.
+
 ## v0.3.11 (2026-11-17)
 ### Changes
 - The mascot is centred in the whole window (not only the content area) and her height follows the window: she fits a normal window and grows to the window size when maximised / fullscreen (scaled with GDI+).
