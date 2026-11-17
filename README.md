@@ -104,9 +104,7 @@ python main.py
 
 - [Usage Guide](documentation/USAGE.md) - How to use all features
 - [Configuration Reference](documentation/CONFIGURATION.md) - All config options
-- [UI Overview](documentation/UI_UPDATE.md) - Region management and UI features
 - [Playtime Tracker](PLAYTIME_TRACKER.md) - Session tracking details
-- [Code Structure](documentation/REFACTORING.md) - Module organization
 
 ## Updating & Git sync
 

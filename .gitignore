@@ -1,3 +1,44 @@
+# ---------------------------------------------------------------------------
+# ALLOW-LIST: only the important project files are uploaded to GitHub.
+# Everything in the top-level folder is ignored unless it is listed below, so a
+# stray backup, export or test file can never be committed by accident (also not
+# by auto-push). To publish a NEW top-level file/folder, add a "!/name" line.
+# ---------------------------------------------------------------------------
+/*
+
+# source code
+!/app/
+!/core/
+!/integrations/
+!/security/
+!/services/
+!/scripts/
+!/main.py
+!/build.py
+!/requirements.txt
+
+# installer, build helpers, CI (the workflow uploads the Setup to the release)
+!/installer/
+!/make_exe.bat
+!/make_installer.bat
+!/start_launcher.bat
+!/.github/
+
+# documentation, license, icon
+!/README.md
+!/CHANGELOG.md
+!/LICENSE
+!/PLAYTIME_TRACKER.md
+!/documentation/
+!/icon.ico
+
+# repo config
+!/.gitignore
+!/.gitattributes
+
+# ---------------------------------------------------------------------------
+# Never upload these, even inside the allowed folders
+# ---------------------------------------------------------------------------
 # Python
 __pycache__/
 *.pyc
@@ -7,44 +48,29 @@ __pycache__/
 .venv/
 venv/
 
-# Logs
+# Logs, user data and exports (accounts, settings, personal data)
 *.log
 logs/
-
-# User Data
 data/
 config.json
-
-# Build artifacts
-*.spec
-build/
-dist/
-*.exe
-
-# Backups & Notes
-*.bak
-zettel.txt
-zettel2.txt
-
-# Test files
-test_*.py
-
-# OS
-.DS_Store
-Thumbs.db
-
-# IDE
-.vscode/
-.idea/
-
-# Private/Local
-
-# User data & exports (never commit accounts or personal settings)
 *.enc.json
 accounts*.json
 launcher_export_*.txt
 playtime_stats.txt
 *.part
 
-# Local tool state
+# Build output, backups, local notes
+*.spec
+build/
+dist/
+*.exe
+*.bak
+zettel*.txt
+test_*.py
+
+# OS / IDE / tools
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
 .claude/
