@@ -574,7 +574,7 @@ def build_settings_tab(config: dict) -> List:
          _muted("Ctrl+S")],
     ], accent=P["green"])
 
-    left = sg.Column([[general], [discord]], background_color=P["panel"],
+    left = sg.Column([[general], [discord], [save]], background_color=P["panel"],
                      pad=(0, 0), vertical_alignment="top", expand_x=True)
     master = _card("Master Password", [
         [_muted("Protects your saved accounts. Changing it asks for the", pad=((8, 6), (0, 0)))],
@@ -583,7 +583,14 @@ def build_settings_tab(config: dict) -> List:
               pad=(8, (6, 10)))],
     ], accent=P["red"])
 
-    right = sg.Column([[regions], [master], [save]], background_color=P["panel"],
+    backup = _card("Backup", [
+        [_muted("Export your settings and accounts to one encrypted file,", pad=((8, 6), (0, 0)))],
+        [_muted("or restore them from one (e.g. on a new PC).", pad=((8, 6), (0, 2)))],
+        [_btn("Export backup", "-EXPORT-BACKUP-", "success", size=(15, 1), pad=((8, 6), (6, 10))),
+         _btn("Import backup", "-IMPORT-BACKUP-", "primary", size=(15, 1), pad=((0, 6), (6, 10)))],
+    ], accent=P["green"])
+
+    right = sg.Column([[regions], [master], [backup]], background_color=P["panel"],
                       pad=(0, 0), vertical_alignment="top", expand_x=True)
     return _page([[left, right]])
 

@@ -47,6 +47,7 @@ from core.config import (
     load_config,
     save_config,
 )
+from security.backup import BackupError, run_export, run_import
 from security.crypto import (
     Account,
     account_display,
@@ -698,6 +699,41 @@ def main() -> int:
         if handle_nav_event(window, event, values):
             if isinstance(event, str) and "update" in event and event.startswith("-NAV") and git_sync:
                 window.write_event_value("-GIT-REFRESH-", None)  # opening the page loads fresh status
+            continue
+
+        # Export / import settings + accounts as one encrypted file
+        if event == "-EXPORT-BACKUP-":
+            try:
+                message = run_export(config, accounts, master_password)
+                if message:
+                    window["-STATUS-"].update(f"✓ {message}")
+            except BackupError as exc:
+                logger.warning("Backup export failed: %s", exc)
+                sg.popup_error(str(exc), title=APP_NAME)
+            continue
+
+        if event == "-IMPORT-BACKUP-":
+            try:
+                result = run_import(config, accounts)
+            except BackupError as exc:
+                logger.warning("Backup import failed: %s", exc)
+                sg.popup_error(str(exc), title=APP_NAME)
+                continue
+            if result:
+                try:
+                    config.clear()
+                    config.update(result["config"])
+                    accounts[:] = result["accounts"]
+                    save_config(paths["config_file"], config)
+                    save_accounts(paths["accounts_file"], master_password, accounts)
+                except OSError as exc:
+                    sg.popup_error(f"The import could not be saved:\n{exc}", title=APP_NAME)
+                    continue
+                apply_theme(config)
+                window.close()
+                window = build_window(config, accounts, log_file_path=str(log_file))
+                window["-STATUS-"].update(f"✓ {result['message']}")
+                logger.info(result["message"])
             continue
 
         # Change the master password (needs the current one)
