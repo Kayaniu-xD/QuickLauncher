@@ -119,6 +119,15 @@ Open **Update** in the menu.
 
 Accounts, `config.json` and logs are in `.gitignore` and are never committed.
 
+## Credits
+
+QuickLauncher is published by:
+
+- **Kayaniu-xD** - <https://github.com/Kayaniu-xD/QuickLauncher>
+- **xLordTime** - <https://github.com/xLordTime/wiz-q-launcher> (second publisher)
+
+Both are shown on the **Update** page in the app and in the installer.
+
 ## Project Structure
 
 ```text

@@ -12,6 +12,12 @@ APP_VERSION = "0.3.2"
 DEFAULT_GITHUB_REPO = "Kayaniu-xD/QuickLauncher"
 _LEGACY_GITHUB_REPOS = {"oliwi/q-launcher"}
 
+# Publishers shown on the Update page: (name, link). Keep in sync with README / LICENSE / installer.
+PUBLISHERS = (
+    ("Kayaniu-xD", "https://github.com/Kayaniu-xD/QuickLauncher"),
+    ("xLordTime", "https://github.com/xLordTime/wiz-q-launcher"),
+)
+
 # Region metadata
 REGION_META = {
     "de": {"name": "Deutsch", "server": "login-de.eu.wizard101.com", "port": 12000, "install": r"C:\ProgramData\KingsIsle Entertainment\Wizard101(DE)"},

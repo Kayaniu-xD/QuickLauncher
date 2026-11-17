@@ -19,7 +19,7 @@ from typing import Dict, List, Optional
 
 import PySimpleGUI as sg
 
-from core.config import APP_NAME, APP_VERSION, REGION_META
+from core.config import APP_NAME, APP_VERSION, PUBLISHERS, REGION_META
 from security.crypto import Account, account_display
 from services.playtime_tracker import PlaytimeTracker
 from services.git_sync import GitSync
@@ -801,7 +801,14 @@ def build_update_tab(config: dict, git_mode: bool) -> List:
                 color=P["muted"], size=9, pad=((8, 6), (0, 10)))],
         ], accent=P["purple"])
 
-    return _page([[version_card], [git_card]])
+    names = " and ".join(name for name, _ in PUBLISHERS)
+    publishers_card = _card("Published by", [
+        [_t(names, bold=True, pad=((8, 6), (4, 2)))],
+        [_t("Open a publisher's GitHub page:", color=P["muted"], size=9, pad=((8, 6), (0, 0)))],
+        [_btn(f"{name} on GitHub", f"-OPEN-PUB-{i}-", size=(22, 1)) for i, (name, _) in enumerate(PUBLISHERS)],
+    ], accent=P["gold"])
+
+    return _page([[version_card], [publishers_card], [git_card]])
 
 
 # ----------------------------------------------------------------------------

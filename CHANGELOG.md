@@ -2,6 +2,7 @@
 
 ## Unreleased
 ### New Features
+- **Publishers**: xLordTime credited as second publisher (installer, Update page, README, LICENSE).
 - **Update page** in the menu: check GitHub releases, update the installed app with one click (downloads and runs the Setup), or `git pull` when running from a checkout.
 - **Git sync**: set remote, pull (fast-forward only), push, commit & push; optional auto-pull on start and auto-push via a `post-commit` hook.
 - Windows installer (`QuickLauncher-Setup-<version>.exe`), data kept in the install folder.

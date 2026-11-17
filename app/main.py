@@ -42,6 +42,7 @@ from core.config import (
     APP_VERSION,
     DEFAULT_CONFIG,
     DEFAULT_GITHUB_REPO,
+    PUBLISHERS,
     REGION_META,
     load_config,
     save_config,
@@ -615,6 +616,12 @@ def main() -> int:
             logger.info("Update installer started: %s", result["path"])
             sg.popup("The installer has started.\nQuickLauncher will now close.", title=APP_NAME)
             break
+
+        if isinstance(event, str) and event.startswith("-OPEN-PUB-"):
+            index = event[len("-OPEN-PUB-"):-1]
+            if index.isdigit() and int(index) < len(PUBLISHERS):
+                webbrowser.open(PUBLISHERS[int(index)][1])
+            continue
 
         if event == "-UPD-AUTOCHECK-":
             config["check_for_updates"] = bool(values.get("-UPD-AUTOCHECK-"))

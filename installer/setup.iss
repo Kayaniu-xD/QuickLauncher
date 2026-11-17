@@ -13,7 +13,9 @@
 AppId={{BC715117-C75A-4299-823E-2936999CF40B}
 AppName={#AppName}
 AppVersion={#AppVersion}
-AppPublisher=QuickLauncher
+AppPublisher=Kayaniu-xD and xLordTime
+AppPublisherURL=https://github.com/Kayaniu-xD/QuickLauncher
+AppSupportURL=https://github.com/Kayaniu-xD/QuickLauncher/issues
 DefaultDirName={autopf}\{#AppName}
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
