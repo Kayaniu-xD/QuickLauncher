@@ -1,13 +1,30 @@
-name: Build
+name: Build and release
+
+# Every push to main builds the exe + Setup installer and publishes them on the
+# GitHub release "v<APP_VERSION>" (APP_VERSION lives in core/config.py).
+#  - same version  -> the release's files are replaced with the fresh build
+#  - bumped version -> a new release is created, and the in-app Update button
+#    offers it to everyone on an older version
+# Pull requests only build (no publishing).
 
 on:
   push:
     branches: ["main"]
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write   # create/update releases and upload their files
+
+concurrency:
+  group: build-and-release-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: windows-latest
+    env:
+      PYTHONUTF8: "1"   # build scripts print non-ASCII characters
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -15,20 +32,61 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
-      - name: Install deps
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pyinstaller
 
-      - name: Build
+      - name: Ensure Inno Setup
+        shell: pwsh
         run: |
-          pyinstaller --noconfirm --onefile --windowed --name "QuickLauncher" main.py
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress }
+          if (-not (Test-Path $iscc)) { throw "Inno Setup not found after install" }
 
-      - name: Upload artifact
+      - name: Build exe and installer
+        run: python scripts/build_installer.py
+
+      - name: Read version
+        id: ver
+        shell: pwsh
+        run: |
+          $v = python -c "from core.config import APP_VERSION; print(APP_VERSION)"
+          "version=$v" >> $env:GITHUB_OUTPUT
+
+      - name: Keep the build files as a workflow artifact
         uses: actions/upload-artifact@v4
         with:
-          name: QuickLauncher
-          path: dist/QuickLauncher.exe
+          name: QuickLauncher-${{ steps.ver.outputs.version }}
+          path: |
+            dist/QuickLauncher.exe
+            dist/QuickLauncher-Setup-${{ steps.ver.outputs.version }}.exe
+
+      - name: Publish release
+        if: github.event_name != 'pull_request'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = "${{ steps.ver.outputs.version }}"
+          $tag = "v$version"
+          $setup = "dist/QuickLauncher-Setup-$version.exe"
+          $portable = "dist/QuickLauncher.exe"
+          $notes = "Automated build of commit $($env:GITHUB_SHA.Substring(0,7)).`n`n" +
+                   "- **QuickLauncher-Setup-$version.exe** - installer (recommended)`n" +
+                   "- **QuickLauncher.exe** - portable, no installation"
+
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) {
+            # Same version again: point the tag at this commit and replace the files.
+            gh api -X PATCH "repos/$env:GITHUB_REPOSITORY/git/refs/tags/$tag" -f sha=$env:GITHUB_SHA -F force=true | Out-Null
+            gh release upload $tag $setup $portable --clobber
+            gh release edit $tag --notes $notes --latest
+          } else {
+            gh release create $tag $setup $portable --target $env:GITHUB_SHA `
+              --title "QuickLauncher v$version" --notes $notes --latest
+          }
+          if ($LASTEXITCODE -ne 0) { throw "Publishing the release failed" }

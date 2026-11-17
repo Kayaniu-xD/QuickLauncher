@@ -119,6 +119,10 @@ Open **Update** in the menu.
 
 Accounts, `config.json` and logs are in `.gitignore` and are never committed.
 
+## Automatic releases
+
+Every push to `main` builds the exe and the Setup installer on GitHub Actions and attaches them to the release `v<APP_VERSION>` (`APP_VERSION` is in `core/config.py`). Same version = the files of that release are replaced; **bump `APP_VERSION` to publish a new release** - the in-app *Update* button then offers it to everyone on an older version. The build runs from the repository, so it never contains your local accounts or settings.
+
 ## Credits
 
 QuickLauncher is published by:
