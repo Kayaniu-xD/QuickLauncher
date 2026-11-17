@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Dict, Any
 
 APP_NAME = "QuickLauncher"
-APP_VERSION = "0.3.12"
+APP_VERSION = "0.3.13"
 
 # Where updates / issue reports go. (Older configs pointed at the upstream author's repo.)
 DEFAULT_GITHUB_REPO = "Kayaniu-xD/QuickLauncher"
@@ -52,7 +52,7 @@ DEFAULT_CONFIG = {
     
     # Dancing mascot in the middle of the pages (opacity 0.1 - 1.0)
     "mascot_enabled": True,
-    "mascot_opacity": 0.7,
+    "mascot_opacity": 0.45,
 
     # UI Theme
     "ui_theme": "WizDark",
@@ -157,6 +157,15 @@ def normalize_config(config: Dict[str, Any]) -> Dict[str, Any]:
     """Normalize config to ensure all required keys exist."""
     normalized = DEFAULT_CONFIG.copy()
     normalized.update(config)
+    if not normalized.get("mascot_opacity_v2"):
+        # One-time: the mascot got more transparent. A stored value equal to the old
+        # default (0.7) means "never changed", so it moves to the new default.
+        try:
+            if abs(float(normalized.get("mascot_opacity", 0.7)) - 0.7) < 1e-6:
+                normalized["mascot_opacity"] = DEFAULT_CONFIG["mascot_opacity"]
+        except (TypeError, ValueError):
+            normalized["mascot_opacity"] = DEFAULT_CONFIG["mascot_opacity"]
+        normalized["mascot_opacity_v2"] = True
     if normalized.get("github_repo") in _LEGACY_GITHUB_REPOS or not normalized.get("github_repo"):
         normalized["github_repo"] = DEFAULT_GITHUB_REPO
     # Ensure all region toggles exist

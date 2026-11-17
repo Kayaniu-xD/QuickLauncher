@@ -23,7 +23,7 @@ from typing import Optional
 
 logger = logging.getLogger("ui")
 
-DEFAULT_OPACITY = 0.7
+DEFAULT_OPACITY = 0.45
 MIN_HEIGHT = 240        # never smaller than this (px)
 MAX_HEIGHT = 3000       # nor bigger (memory guard)
 HEIGHT_STEP = 8         # re-create the drawing surface only every few pixels while resizing
@@ -187,6 +187,10 @@ class MascotOverlay:
         self._draw()
         self.user32.ShowWindow(self.hwnd, _SW_SHOWNOACTIVATE)
         self.top.after(self.delay, self._tick)
+
+    def set_opacity(self, opacity: float):
+        """Change the opacity (0.05 - 1.0) while running; the next frame uses it."""
+        self.alpha = max(13, min(255, int(round(float(opacity) * 255))))
 
     # ---------------------------------------------------------------- window
     def _setup_window(self):

@@ -541,7 +541,14 @@ def build_settings_tab(config: dict) -> List:
          _combo(["WizDark", "WizLight"], config.get("ui_theme", "WizDark"),
                 "-THEME-", enable_events=True, size=(10, 1), pad=(6, (4, 4)))],
         [_chk("Show the dancing mascot", config.get("mascot_enabled", True),
-              "-MASCOT-ON-", enable_events=True, pad=(6, (2, 10)))],
+              "-MASCOT-ON-", enable_events=True, pad=(6, (2, 2)))],
+        [_t("Mascot opacity (%)"),
+         sg.Push(background_color=P["card"]),
+         sg.Slider(range=(5, 100), resolution=5, orientation="h", size=(14, 12),
+                   default_value=int(round(float(config.get("mascot_opacity", 0.45)) * 100)),
+                   key="-MASCOT-OPACITY-", enable_events=True,
+                   background_color=P["card"], text_color=P["text"],
+                   trough_color=P["input"], font=(FONT, 9), pad=(6, (0, 10)))],
     ], accent=P["accent"])
 
     discord = _card("Discord Rich Presence", [
@@ -1121,6 +1128,7 @@ def build_window(config: dict, accounts: List[Account], log_file_path: Optional[
 
     _style_inputs(window)
     mascot.start(window, config)
+    window["-MASCOT-OPACITY-"].bind("<ButtonRelease-1>", "RELEASE")  # save once the slider is let go
 
     # Don't let the search box grab the initial focus (that would wipe its placeholder)
     window.TKroot.focus_set()

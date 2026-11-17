@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v0.3.13 (2026-11-17)
+### Changes
+- The mascot is more transparent by default (45 % instead of 70 %; an unchanged old default is moved over once). New slider under Settings -> "Mascot opacity (%)": it changes the mascot live while you drag and is saved when you let go.
+
 ## v0.3.12 (2026-11-17)
 ### Changes
 - New app icon (wizard with staff). It is used for the exe, the installer and every window, including the master-password prompt.

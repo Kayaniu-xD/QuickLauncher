@@ -1239,6 +1239,18 @@ def main() -> int:
                 window["-STATUS-"].update(f"✓ Theme changed to {new_theme}")
                 logger.info(f"Theme changed to {new_theme}")
 
+        # Mascot opacity slider: preview live while dragging, save when released
+        if event == "-MASCOT-OPACITY-":
+            try:
+                config["mascot_opacity"] = round(float(values["-MASCOT-OPACITY-"]) / 100, 2)
+                overlay = getattr(window.TKroot, "_mascot", None)
+                if overlay:
+                    overlay.set_opacity(config["mascot_opacity"])
+            except (TypeError, ValueError, KeyError):
+                pass
+        if event == "-MASCOT-OPACITY-RELEASE":
+            save_config(paths["config_file"], config)
+
         # Mascot on/off: applied right away
         if event == "-MASCOT-ON-":
             config["mascot_enabled"] = bool(values.get("-MASCOT-ON-", True))
