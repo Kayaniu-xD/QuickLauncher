@@ -90,3 +90,25 @@ jobs:
               --title "QuickLauncher v$version" --notes $notes --latest
           }
           if ($LASTEXITCODE -ne 0) { throw "Publishing the release failed" }
+
+      # Hard guarantee: a build only counts as successful when the Setup really is
+      # on the release for this exact commit. Otherwise the run turns red.
+      - name: Verify the Setup is on the release
+        if: github.event_name != 'pull_request'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = "${{ steps.ver.outputs.version }}"
+          $tag = "v$version"
+          $expected = "QuickLauncher-Setup-$version.exe"
+
+          $assets = gh release view $tag --json assets | ConvertFrom-Json | Select-Object -ExpandProperty assets
+          $setup = $assets | Where-Object { $_.name -eq $expected }
+          if (-not $setup) { throw "Release $tag has no $expected (found: $($assets.name -join ', '))" }
+          if ($setup.size -lt 5MB) { throw "$expected is only $($setup.size) bytes - the upload looks broken" }
+
+          $tagSha = gh api "repos/$env:GITHUB_REPOSITORY/git/ref/tags/$tag" --jq .object.sha
+          if ($tagSha -ne $env:GITHUB_SHA) { throw "Tag $tag points at $tagSha, not at this commit ($env:GITHUB_SHA)" }
+
+          "OK: release $tag contains $expected ($([math]::Round($setup.size/1MB,1)) MB) and points at this commit"

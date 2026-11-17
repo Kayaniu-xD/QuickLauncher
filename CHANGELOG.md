@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v0.3.4 (2026-11-17)
+### Changes
+- The release workflow now verifies that the Setup installer is attached to the release for the pushed commit and fails loudly otherwise.
+
 ## v0.3.3 (2026-11-17)
 ### New Features
 - **Versioning**: every update raises the version by 0.0.1 (`scripts/bump_version.py`; automatic in "Commit & push" on the Update page).
