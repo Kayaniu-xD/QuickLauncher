@@ -1017,9 +1017,12 @@ def build_window(config: dict, accounts: List[Account], log_file_path: Optional[
     }
 
     # ---------------- sidebar ----------------
+    brand_logo = mascot.asset_path("brand.png")
     brand = [
-        sg.Text("+", size=(3, 1), justification="center", background_color=P["card_hi"],
-                text_color=P["accent"], font=(FONT, 16, "bold"), pad=((14, 8), (14, 4))),
+        (sg.Image(filename=str(brand_logo), background_color=panel, pad=((14, 8), (10, 2)))
+         if brand_logo else
+         sg.Text("+", size=(3, 1), justification="center", background_color=P["card_hi"],
+                 text_color=P["accent"], font=(FONT, 16, "bold"), pad=((14, 8), (14, 4)))),
         sg.Column(
             [[_t(APP_NAME, bg=panel, size=11, bold=True, pad=(0, 0))],
              [_t(f"Version {APP_VERSION}", bg=panel, color=P["muted"], size=8, pad=(0, 0))]],

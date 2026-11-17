@@ -119,14 +119,18 @@ def _api():
     return user32, gdi32
 
 
-def mascot_file() -> Optional[Path]:
-    """Find assets/mascot.bin in the PyInstaller bundle, next to the exe, or the source tree."""
+def asset_path(name: str) -> Optional[Path]:
+    """Find assets/<name> in the PyInstaller bundle, next to the exe, or the source tree."""
     candidates = []
     if getattr(sys, "frozen", False):
-        candidates.append(Path(getattr(sys, "_MEIPASS", ".")) / "assets" / "mascot.bin")
-        candidates.append(Path(sys.executable).resolve().parent / "assets" / "mascot.bin")
-    candidates.append(Path(__file__).resolve().parent.parent / "assets" / "mascot.bin")
+        candidates.append(Path(getattr(sys, "_MEIPASS", ".")) / "assets" / name)
+        candidates.append(Path(sys.executable).resolve().parent / "assets" / name)
+    candidates.append(Path(__file__).resolve().parent.parent / "assets" / name)
     return next((c for c in candidates if c.is_file()), None)
+
+
+def mascot_file() -> Optional[Path]:
+    return asset_path("mascot.bin")
 
 
 _cache: dict = {}
