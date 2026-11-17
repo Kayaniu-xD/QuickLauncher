@@ -1,4 +1,4 @@
-# QuickLauncher v0.4.0
+# QuickLauncher v0.3.3
 
 Open source Wizard101 launcher with quick start, multi-instance, auto-login, playtime tracking, multi-window management, and extensible wizwalker integrations.
 
@@ -105,6 +105,15 @@ python main.py
 - [Usage Guide](documentation/USAGE.md) - How to use all features
 - [Configuration Reference](documentation/CONFIGURATION.md) - All config options
 - [Playtime Tracker](PLAYTIME_TRACKER.md) - Session tracking details
+
+## Versions
+
+**Every update raises the version by 0.0.1** (0.3.2 -> 0.3.3 -> 0.3.4; no carry, so 0.3.9 -> 0.3.10). `APP_VERSION` in `core/config.py` is the only place to change; the installer, the release tag and the README title follow it.
+
+- `python scripts/bump_version.py` does it (config, README title, changelog heading).
+- The Update page's **Commit & push** does it automatically - but only when something was actually committed, and not twice if you already raised the version yourself.
+
+A new version makes the GitHub workflow publish a new release, and the in-app **Update** button then offers it to everyone on an older version.
 
 ## Backup & restore
 

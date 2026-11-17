@@ -665,7 +665,7 @@ def main() -> int:
             if message is not None:
                 window["-GIT-STATUS-"].update("Committing and pushing...", text_color="#9A9CA6")
                 window.perform_long_operation(
-                    lambda: git_action(lambda: git_sync.commit_and_push(message)), "-GIT-DONE-")
+                    lambda: git_action(lambda: git_sync.commit_and_push(message, bump_version=True)), "-GIT-DONE-")
             continue
 
         if event == "-GIT-DONE-":

@@ -1,7 +1,10 @@
 # Changelog
 
 ## Unreleased
+
+## v0.3.3 (2026-11-17)
 ### New Features
+- **Versioning**: every update raises the version by 0.0.1 (`scripts/bump_version.py`; automatic in "Commit & push" on the Update page).
 - **Backup & restore** (Settings > Backup): export settings + accounts to one encrypted `.qlbackup` file (needs the master password); import with merge/replace options. Dangerous settings are never imported.
 - **Automatic releases**: every push to `main` builds the Setup installer + portable exe on GitHub Actions and uploads them to the release `v<APP_VERSION>`.
 - **Publishers**: xLordTime credited as second publisher (installer, Update page, README, LICENSE).

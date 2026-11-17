@@ -191,18 +191,40 @@ class GitSync:
         out = self._ok(*args, timeout=120)
         return out.splitlines()[-1] if out else "Pushed."
 
-    def commit_all(self, message: str) -> str:
-        """Stage everything not ignored and commit (no-op if nothing changed)."""
+    def _version_staged(self) -> bool:
+        """True if the staged changes already contain a hand-made APP_VERSION change."""
+        _, out, _ = self._run("diff", "--cached", "-U0", "--", "core/config.py")
+        return any(line.startswith("+APP_VERSION") for line in out.splitlines())
+
+    def commit_all(self, message: str, bump_version: bool = False) -> str:
+        """
+        Stage everything not ignored and commit (no-op if nothing changed).
+
+        With bump_version, each update raises the version by 0.0.1 (0.3.2 -> 0.3.3)
+        unless the version was already changed by hand in this commit.
+        """
         message = message.strip() or "Update"
         self._ok("add", "-A")
         code, _, _ = self._run("diff", "--cached", "--quiet")
         if code == 0:
             return "Nothing to commit."
-        self._ok("commit", "-m", message)
-        return "Committed."
+        version_note = ""
+        if bump_version and not self._version_staged():
+            try:
+                from services.versioning import bump_patch
 
-    def commit_and_push(self, message: str) -> str:
-        committed = self.commit_all(message)
+                new_version = bump_patch(self.repo_dir)
+                touched = [name for name in ("core/config.py", "README.md", "CHANGELOG.md")
+                           if (self.repo_dir / name).exists()]
+                self._ok("add", "--", *touched)
+                version_note = f" (v{new_version})"
+            except (ValueError, OSError):
+                pass  # not a QuickLauncher checkout / unreadable version: commit without bumping
+        self._ok("commit", "-m", message)
+        return f"Committed{version_note}."
+
+    def commit_and_push(self, message: str, bump_version: bool = False) -> str:
+        committed = self.commit_all(message, bump_version=bump_version)
         pushed = self.push()
         return f"{committed} {pushed}"
 
