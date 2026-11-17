@@ -524,7 +524,7 @@ def main() -> int:
             return
         count = len(chosen_accounts)
         cfg["foreground_on_login"] = vals.get("-FOREGROUND-", True)
-        cfg["set_window_title"] = vals.get("-SETTITLE-", True)
+        cfg["set_window_title"] = vals.get("-SETTITLE-", False)
         auto_login_busy["on"] = True
         win["-STATUS-"].update(f"Starting {count} account(s) with auto-login...")
         chosen = list(chosen_accounts)
@@ -1283,6 +1283,12 @@ def main() -> int:
             window.close()
             window = build_window(config, accounts, log_file_path=str(log_file))
             window["-STATUS-"].update("Custom colours reset to the defaults")
+
+        # Window options: remember the choice right away
+        if event in ("-FOREGROUND-", "-SETTITLE-"):
+            config["foreground_on_login"] = bool(values.get("-FOREGROUND-", True))
+            config["set_window_title"] = bool(values.get("-SETTITLE-", False))
+            save_config(paths["config_file"], config)
 
         # Mascot opacity slider: preview live while dragging, save when released
         if event == "-MASCOT-OPACITY-":

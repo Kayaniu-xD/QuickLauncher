@@ -1,4 +1,4 @@
-# QuickLauncher v0.3.17
+# QuickLauncher v0.3.18
 
 Open source Wizard101 launcher with quick start, multi-instance, auto-login, playtime tracking, multi-window management, and extensible wizwalker integrations.
 

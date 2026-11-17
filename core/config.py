@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Dict, Any
 
 APP_NAME = "QuickLauncher"
-APP_VERSION = "0.3.17"
+APP_VERSION = "0.3.18"
 
 # Where updates / issue reports go. (Older configs pointed at the upstream author's repo.)
 DEFAULT_GITHUB_REPO = "Kayaniu-xD/QuickLauncher"
@@ -41,7 +41,7 @@ DEFAULT_CONFIG = {
     # Launch settings
     "login_wait_seconds": 2,
     "foreground_on_login": True,
-    "set_window_title": True,
+    "set_window_title": False,
     "window_title_template": "{name} ({username})",
     
     # Logging
@@ -167,6 +167,11 @@ def normalize_config(config: Dict[str, Any]) -> Dict[str, Any]:
         except (TypeError, ValueError):
             normalized["mascot_opacity"] = DEFAULT_CONFIG["mascot_opacity"]
         normalized["mascot_opacity_v2"] = True
+    if not normalized.get("set_window_title_v2"):
+        # One-time: "Set window title" is now off by default. Existing configs still hold the
+        # old default (True), so it is switched off once; later changes by the user are kept.
+        normalized["set_window_title"] = False
+        normalized["set_window_title_v2"] = True
     if normalized.get("github_repo") in _LEGACY_GITHUB_REPOS or not normalized.get("github_repo"):
         normalized["github_repo"] = DEFAULT_GITHUB_REPO
     # Ensure all region toggles exist

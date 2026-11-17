@@ -553,8 +553,10 @@ def build_launch_tab(config: dict, account_list: List[str]) -> List:
 
     options_card = _card("Window options", [
         [
-            _chk("Bring window to front", config.get("foreground_on_login", True), "-FOREGROUND-"),
-            _chk("Set window title", config.get("set_window_title", True), "-SETTITLE-"),
+            _chk("Bring window to front", config.get("foreground_on_login", True), "-FOREGROUND-",
+                 enable_events=True),
+            _chk("Set window title", config.get("set_window_title", False), "-SETTITLE-",
+                 enable_events=True),
         ],
     ], accent=P["purple"])
 

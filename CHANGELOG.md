@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v0.3.18 (2026-11-17)
+### Changes
+- "Set window title" (Launch -> Window options) is now off by default; existing installs are switched off once, and you can turn it on again at any time. Both Window options checkboxes are now saved as soon as you click them.
+
 ## v0.3.17 (2026-11-17)
 ### Added
 - Five new UI themes: Midnight, Forest, Crimson, Amethyst and Sand (light), next to Dark and Light.
