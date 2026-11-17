@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v0.3.16 (2026-11-17)
+### Changes
+- Launch page order is now: Launch, Accounts to launch, Region (then Window options).
+
 ## v0.3.15 (2026-11-17)
 ### Fixed
 - After an install/update Explorer sometimes kept showing the old cached icon on shortcuts. The Setup now tells Explorer to refresh its icons when it finishes.

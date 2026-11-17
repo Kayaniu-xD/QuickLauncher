@@ -471,7 +471,7 @@ def build_launch_tab(config: dict, account_list: List[str]) -> List:
         _kpi("Regions enabled", str(enabled_regions), f"of {len(REGION_META)} available", "\u2726", P["purple"]),
         _kpi("Log level", str(config.get("log_level", "INFO")), "Launcher logging", "\u2261", P["gold"]),
     ]
-    return _page([kpis, [region_card], [launch_card], [accounts_card], [options_card]])
+    return _page([kpis, [launch_card], [accounts_card], [region_card], [options_card]])
 
 
 def build_region_tab(config: dict, region_code: str) -> List:
