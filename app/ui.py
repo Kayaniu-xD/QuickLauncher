@@ -11,6 +11,7 @@ event name) are unchanged, so app/main.py is unaffected by the restyle.
 import base64
 import functools
 import logging
+import re
 import struct
 import sys
 import zlib
@@ -72,6 +73,36 @@ _PALETTES: Dict[str, Dict[str, str]] = {
         "on_accent": "#FFFFFF",
         "hover_to": "#000000",
     },
+    "Midnight": {
+        "bg": "#0B1020", "panel": "#111833", "card": "#172044", "card_hi": "#243061",
+        "border": "#2F3C73", "input": "#0E1430", "text": "#E8ECFF", "muted": "#8C97C6",
+        "accent": "#4DA3FF", "gold": "#FFC24D", "green": "#3DDC97", "red": "#FF6B8A",
+        "purple": "#A98BFF", "blue": "#6C8CFF", "on_accent": "#04112B", "hover_to": "#FFFFFF",
+    },
+    "Forest": {
+        "bg": "#0E1411", "panel": "#141D18", "card": "#1C2822", "card_hi": "#2A3B32",
+        "border": "#34493E", "input": "#0F1713", "text": "#E6F2EA", "muted": "#8DA597",
+        "accent": "#3DDC97", "gold": "#FFC857", "green": "#55E6A5", "red": "#FF6B6B",
+        "purple": "#B79BFF", "blue": "#5BC0FF", "on_accent": "#04180F", "hover_to": "#FFFFFF",
+    },
+    "Crimson": {
+        "bg": "#140D0F", "panel": "#1C1215", "card": "#271A1E", "card_hi": "#3A262C",
+        "border": "#4A3037", "input": "#120B0D", "text": "#F5E9EC", "muted": "#A98F96",
+        "accent": "#FF5C7A", "gold": "#FFB84D", "green": "#3DDC97", "red": "#FF7A8E",
+        "purple": "#C58BFF", "blue": "#6C9CFF", "on_accent": "#2B0510", "hover_to": "#FFFFFF",
+    },
+    "Amethyst": {
+        "bg": "#120E1A", "panel": "#191325", "card": "#231B33", "card_hi": "#33264A",
+        "border": "#43325E", "input": "#100B17", "text": "#F0EAFB", "muted": "#A396BD",
+        "accent": "#A07BFF", "gold": "#FFC24D", "green": "#3DDC97", "red": "#FF6B8A",
+        "purple": "#C79BFF", "blue": "#7B9CFF", "on_accent": "#140828", "hover_to": "#FFFFFF",
+    },
+    "Sand": {
+        "bg": "#F3EDE2", "panel": "#FAF6EE", "card": "#FFFFFF", "card_hi": "#EADFC8",
+        "border": "#D6C7A6", "input": "#FBF8F1", "text": "#2A2418", "muted": "#7A6E58",
+        "accent": "#C26A00", "gold": "#B07A00", "green": "#1B8A4F", "red": "#C0392B",
+        "purple": "#7B4FC9", "blue": "#2F6FD1", "on_accent": "#FFFFFF", "hover_to": "#000000",
+    },
 }
 
 # Active palette (swapped by apply_theme)
@@ -89,35 +120,98 @@ def _mix(c1: str, c2: str, t: float) -> str:
 # Theme
 # ----------------------------------------------------------------------------
 
-def apply_theme(config: dict) -> None:
-    """
-    Apply the launcher theme (WizDark / WizLight) and global look & feel.
+CUSTOM_THEME = "Custom"
+# The colours a user can change in "Custom"; everything else is derived from them.
+CUSTOM_FIELDS = [
+    ("bg", "Background"),
+    ("panel", "Panels"),
+    ("card", "Cards"),
+    ("text", "Text"),
+    ("accent", "Accent"),
+]
+CUSTOM_DEFAULTS = {k: _PALETTES["WizDark"][k] for k, _ in CUSTOM_FIELDS}
+THEME_DISPLAY = {"WizDark": "Dark", "WizLight": "Light"}
+_HEX_COLOR = re.compile(r"^#[0-9A-Fa-f]{6}$")
 
-    Args:
-        config: Configuration dictionary with 'ui_theme' key
+
+def theme_names() -> List[str]:
+    """Names shown in the Settings theme list (presets first, then Custom)."""
+    return list(_PALETTES) + [CUSTOM_THEME]
+
+
+def is_hex_color(value) -> bool:
+    return isinstance(value, str) and bool(_HEX_COLOR.match(value))
+
+
+def _luminance(color: str) -> float:
+    """Perceived brightness 0 (black) .. 1 (white) of a #RRGGBB colour."""
+    r, g, b = (int(color[i:i + 2], 16) / 255 for i in (1, 3, 5))
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def custom_palette(custom: Optional[dict]) -> Dict[str, str]:
     """
+    Build a full palette from the few colours the user picked.
+
+    Invalid or missing values fall back to the defaults, so a damaged or hand-edited
+    config can never break the UI. Status colours (green/red/...) come from the dark
+    or the light preset, depending on how bright the chosen background is.
+    """
+    picked = dict(CUSTOM_DEFAULTS)
+    if isinstance(custom, dict):
+        for key in CUSTOM_DEFAULTS:
+            value = custom.get(key)
+            if is_hex_color(value):
+                picked[key] = value.upper()
+    bg, panel, card, text, accent = (picked[k] for k, _ in CUSTOM_FIELDS)
+    dark = _luminance(bg) < 0.5
+    pal = dict(_PALETTES["WizDark" if dark else "WizLight"])
+    pal.update(bg=bg, panel=panel, card=card, text=text, accent=accent)
+    pal["card_hi"] = _mix(card, text, 0.14)
+    pal["border"] = _mix(card, text, 0.22)
+    pal["input"] = _mix(bg, "#000000" if dark else "#FFFFFF", 0.3)
+    pal["muted"] = _mix(text, card, 0.45)
+    pal["on_accent"] = "#06122B" if _luminance(accent) > 0.45 else "#FFFFFF"
+    pal["hover_to"] = "#FFFFFF" if dark else "#000000"
+    return pal
+
+
+def theme_palette(config: dict):
+    """(theme name, palette) for the config; unknown names fall back to WizDark."""
     selected = config.get("ui_theme", "WizDark")
+    if selected == CUSTOM_THEME:
+        return selected, custom_palette(config.get("custom_theme"))
     if selected not in _PALETTES:
         selected = "WizDark"
-    P.clear()
-    P.update(_PALETTES[selected])
+    return selected, dict(_PALETTES[selected])
 
-    for name, pal in _PALETTES.items():
-        sg.theme_add_new(
-            name,
-            {
-                "BACKGROUND": pal["bg"],
-                "TEXT": pal["text"],
-                "INPUT": pal["input"],
-                "TEXT_INPUT": pal["text"],
-                "SCROLL": pal["card_hi"],
-                "BUTTON": (pal["on_accent"], pal["accent"]),
-                "PROGRESS": (pal["accent"], pal["input"]),
-                "BORDER": 0,
-                "SLIDER_DEPTH": 0,
-                "PROGRESS_DEPTH": 0,
-            },
-        )
+
+def apply_theme(config: dict) -> None:
+    """
+    Apply the launcher theme (a preset or "Custom") and the global look & feel.
+
+    Args:
+        config: Configuration dictionary with 'ui_theme' (and 'custom_theme')
+    """
+    selected, pal = theme_palette(config)
+    P.clear()
+    P.update(pal)
+
+    sg.theme_add_new(
+        selected,
+        {
+            "BACKGROUND": pal["bg"],
+            "TEXT": pal["text"],
+            "INPUT": pal["input"],
+            "TEXT_INPUT": pal["text"],
+            "SCROLL": pal["card_hi"],
+            "BUTTON": (pal["on_accent"], pal["accent"]),
+            "PROGRESS": (pal["accent"], pal["input"]),
+            "BORDER": 0,
+            "SLIDER_DEPTH": 0,
+            "PROGRESS_DEPTH": 0,
+        },
+    )
     sg.theme(selected)
 
     sg.set_options(
@@ -538,8 +632,8 @@ def build_settings_tab(config: dict) -> List:
                 "-LOGLEVEL-", size=(10, 1))],
         [_t("UI Theme"),
          sg.Push(background_color=P["card"]),
-         _combo(["WizDark", "WizLight"], config.get("ui_theme", "WizDark"),
-                "-THEME-", enable_events=True, size=(10, 1), pad=(6, (4, 4)))],
+         _combo(theme_names(), config.get("ui_theme", "WizDark"),
+                "-THEME-", enable_events=True, size=(12, 1), pad=(6, (4, 4)))],
         [_chk("Show the dancing mascot", config.get("mascot_enabled", True),
               "-MASCOT-ON-", enable_events=True, pad=(6, (2, 2)))],
         [_t("Mascot opacity (%)"),
@@ -601,7 +695,27 @@ def build_settings_tab(config: dict) -> List:
          _btn("Import backup", "-IMPORT-BACKUP-", "primary", size=(15, 1), pad=((0, 6), (6, 10)))],
     ], accent=P["green"])
 
-    right = sg.Column([[regions], [master], [backup]], background_color=P["panel"],
+    current_custom = custom_palette(config.get("custom_theme"))
+
+    def color_row(field: str, label: str) -> list:
+        value = current_custom[field]
+        return [
+            _t(label),
+            sg.Push(background_color=P["card"]),
+            _inp(value, f"-CIN-{field}-", size=(9, 1), enable_events=True),
+            sg.Text("     ", key=f"-CSW-{field}-", background_color=value, relief=sg.RELIEF_SOLID,
+                    border_width=1, pad=(2, 4)),
+            _btn("Pick", f"-CPICK-{field}-", "ghost", size=(6, 1), pad=((4, 8), 4)),
+        ]
+
+    custom_card = _card("Custom Colors", [
+        [_muted("Pick your own colours, then press Apply.", pad=((8, 6), (0, 2)))],
+        *[color_row(f, l) for f, l in CUSTOM_FIELDS],
+        [_btn("Apply custom theme", "-CUSTOM-APPLY-", "primary", size=(20, 1), pad=((8, 4), (8, 10))),
+         _btn("Reset", "-CUSTOM-RESET-", "ghost", size=(8, 1), pad=((0, 6), (8, 10)))],
+    ], accent=P["purple"])
+
+    right = sg.Column([[regions], [custom_card], [master], [backup]], background_color=P["panel"],
                       pad=(0, 0), vertical_alignment="top", expand_x=True)
     return _page([[left, right]])
 
@@ -1051,7 +1165,7 @@ def build_window(config: dict, accounts: List[Account], log_file_path: Optional[
              _t(str(len(account_list)), bg=card, size=9, bold=True, pad=((6, 10), (2, 2)))],
             [_t("Theme", bg=card, color=P["muted"], size=9, pad=((10, 6), (2, 8))),
              sg.Push(background_color=card),
-             _t("Dark" if config.get("ui_theme", "WizDark") == "WizDark" else "Light",
+             _t(THEME_DISPLAY.get(config.get("ui_theme", "WizDark"), config.get("ui_theme", "WizDark")),
                 bg=card, size=9, bold=True, pad=((6, 10), (2, 8)))],
         ],
         bg=card, pad=((12, 12), (8, 12)), expand_x=True,

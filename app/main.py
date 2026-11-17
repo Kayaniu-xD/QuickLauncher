@@ -33,6 +33,7 @@ import shutil
 import subprocess
 import tempfile
 import webbrowser
+from tkinter import colorchooser
 from pathlib import Path
 
 import PySimpleGUI as sg
@@ -68,7 +69,8 @@ from services.launcher import (
 )
 from core.logging_utils import setup_logging
 from services.playtime_tracker import PlaytimeTracker
-from app.ui import apply_theme, build_window, handle_nav_event, resolve_icon_path
+from app.ui import (CUSTOM_FIELDS, CUSTOM_THEME, apply_theme, build_window, handle_nav_event,
+                    is_hex_color, resolve_icon_path)
 from services.performance_monitor import PerformanceMonitor
 from integrations.discord_integration import DiscordIntegration
 from integrations.discord_presence import DiscordRichPresence, RollingActivity24h
@@ -1238,6 +1240,49 @@ def main() -> int:
                 window = build_window(config, accounts, log_file_path=str(log_file))
                 window["-STATUS-"].update(f"✓ Theme changed to {new_theme}")
                 logger.info(f"Theme changed to {new_theme}")
+
+        # ================== CUSTOM THEME COLOURS ==================
+        if isinstance(event, str) and event.startswith("-CPICK-"):
+            field = event[len("-CPICK-"):-1]
+            if f"-CIN-{field}-" in window.AllKeysDict:
+                current = str(values.get(f"-CIN-{field}-", "")).strip()
+                chosen = colorchooser.askcolor(
+                    color=current if is_hex_color(current) else None,
+                    parent=window.TKroot, title="Pick a colour")[1]
+                if chosen:
+                    window[f"-CIN-{field}-"].update(chosen.upper())
+                    window[f"-CSW-{field}-"].update(background_color=chosen)
+        if isinstance(event, str) and event.startswith("-CIN-"):
+            field = event[len("-CIN-"):-1]
+            typed = str(values.get(event, "")).strip()
+            if is_hex_color(typed) and f"-CSW-{field}-" in window.AllKeysDict:
+                window[f"-CSW-{field}-"].update(background_color=typed)
+        if event == "-CUSTOM-APPLY-":
+            picked, problem = {}, None
+            for field, label in CUSTOM_FIELDS:
+                typed = str(values.get(f"-CIN-{field}-", "")).strip()
+                typed = typed if typed.startswith("#") else "#" + typed
+                if not is_hex_color(typed):
+                    problem = label
+                    break
+                picked[field] = typed.upper()
+            if problem:
+                sg.popup(f"\"{problem}\" must be a colour like #1A2B3C.", title=APP_NAME)
+            else:
+                config["custom_theme"] = picked
+                config["ui_theme"] = CUSTOM_THEME
+                save_config(paths["config_file"], config)
+                apply_theme(config)
+                window.close()
+                window = build_window(config, accounts, log_file_path=str(log_file))
+                window["-STATUS-"].update("Custom theme applied")
+        if event == "-CUSTOM-RESET-":
+            config["custom_theme"] = {}
+            save_config(paths["config_file"], config)
+            apply_theme(config)
+            window.close()
+            window = build_window(config, accounts, log_file_path=str(log_file))
+            window["-STATUS-"].update("Custom colours reset to the defaults")
 
         # Mascot opacity slider: preview live while dragging, save when released
         if event == "-MASCOT-OPACITY-":

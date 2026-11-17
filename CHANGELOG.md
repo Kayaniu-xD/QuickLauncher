@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v0.3.17 (2026-11-17)
+### Added
+- Five new UI themes: Midnight, Forest, Crimson, Amethyst and Sand (light), next to Dark and Light.
+- "Custom" theme: Settings -> Custom Colors lets you pick background, panels, cards, text and accent colours (colour picker or hex code) and applies them; Reset restores the defaults. Everything else (borders, inputs, muted text, ...) is derived automatically.
+
 ## v0.3.16 (2026-11-17)
 ### Changes
 - Launch page order is now: Launch, Accounts to launch, Region (then Window options).
