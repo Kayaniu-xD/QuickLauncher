@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v0.3.8 (2026-11-17)
+### Fixed
+- After an in-app update the new QuickLauncher failed to start with "Failed to load Python DLL ... python312.dll". The updater and the Setup now start the new exe as a fresh process (they no longer pass on the old exe's PyInstaller temp-folder variables).
+
 ## v0.3.7 (2026-11-17)
 ### Changes
 - The dancing mascot is now bigger, centred on **every** page and drawn as a click-through, semi-transparent overlay (opacity `mascot_opacity` in `data/config.json`, default 0.7). It can be switched off under Settings -> "Show the dancing mascot".

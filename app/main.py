@@ -610,7 +610,8 @@ def main() -> int:
                 set_update_status(window, result["msg"], good=False)
                 continue
             try:
-                subprocess.Popen([result["path"]], close_fds=True)  # the wizard closes/relaunches us
+                subprocess.Popen([result["path"]], close_fds=True,
+                                 env=UpdateChecker.fresh_process_env())  # the wizard closes/relaunches us
             except OSError as exc:
                 set_update_status(window, f"Could not start the installer: {exc}", good=False)
                 continue

@@ -1,5 +1,6 @@
 """Automatic update checking and version management."""
 
+import os
 import logging
 import requests
 from pathlib import Path
@@ -87,6 +88,23 @@ class UpdateChecker:
                     "message": f"Update available: v{info['new_version']}"}
         return {"state": "current", "info": None,
                 "message": f"You are up to date (v{self.current_version})."}
+
+    @staticmethod
+    def fresh_process_env() -> dict:
+        """
+        Environment for starting the installer (and, through it, the new QuickLauncher).
+
+        A PyInstaller one-file exe unpacks itself into a temp folder and tells every
+        child process about it through _PYI_* / _MEIPASS2 variables. A child that
+        inherits them tries to reuse that folder - which is deleted as soon as this
+        process exits - and fails with "Failed to load Python DLL ...\python312.dll".
+        Dropping those variables and asking the bootloader to reset makes the new
+        exe start as a completely fresh process.
+        """
+        env = {k: v for k, v in os.environ.items()
+               if not k.startswith("_PYI_") and k != "_MEIPASS2"}
+        env["PYINSTALLER_RESET_ENVIRONMENT"] = "1"
+        return env
 
     @staticmethod
     def download_installer(url: str, dest_dir: Path, progress=None) -> Path:

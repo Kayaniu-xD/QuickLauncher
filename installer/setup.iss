@@ -69,6 +69,20 @@ Name: "{autodesktop}\{#AppName}";      Filename: "{app}\{#AppExe}"; WorkingDir: 
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; WorkingDir: "{app}"; Flags: nowait postinstall skipifsilent runasoriginaluser
 
 [Code]
+// The launcher is a PyInstaller one-file exe. If this installer was started by an
+// older QuickLauncher (in-app update) it inherits that process's PyInstaller
+// variables, and the freshly installed exe would try to reuse the old, already
+// deleted temp folder ("Failed to load Python DLL"). Tell the bootloader to ignore
+// them; the [Run] entry below inherits this setting.
+function SetEnvironmentVariableW(lpName, lpValue: String): Boolean;
+  external 'SetEnvironmentVariableW@kernel32.dll stdcall';
+
+function InitializeSetup(): Boolean;
+begin
+  SetEnvironmentVariableW('PYINSTALLER_RESET_ENVIRONMENT', '1');
+  Result := True;
+end;
+
 // On uninstall, ask whether the user's accounts / settings / logs should go too.
 // Default is NO: a reinstall then picks up exactly where the user left off.
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
