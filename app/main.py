@@ -1204,6 +1204,14 @@ def main() -> int:
                 window["-STATUS-"].update(f"✓ Theme changed to {new_theme}")
                 logger.info(f"Theme changed to {new_theme}")
 
+        # Mascot on/off: applied right away
+        if event == "-MASCOT-ON-":
+            config["mascot_enabled"] = bool(values.get("-MASCOT-ON-", True))
+            save_config(paths["config_file"], config)
+            window.close()
+            window = build_window(config, accounts, log_file_path=str(log_file))
+            window["-STATUS-"].update("Mascot " + ("shown" if config["mascot_enabled"] else "hidden"))
+
         # Stats: Refresh - rebuild window with updated stats
         if event == "Refresh":
 

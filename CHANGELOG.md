@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v0.3.7 (2026-11-17)
+### Changes
+- The dancing mascot is now bigger, centred on **every** page and drawn as a click-through, semi-transparent overlay (opacity `mascot_opacity` in `data/config.json`, default 0.7). It can be switched off under Settings -> "Show the dancing mascot".
+
 ## v0.3.6 (2026-11-17)
 ### Added
 - Animated dancing mascot (Konata from Lucky Star, green screen removed) next to the account list; frames live in `assets/mascot/` and are bundled into the exe.

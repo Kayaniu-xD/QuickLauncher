@@ -517,15 +517,7 @@ def build_accounts_tab(account_list: List[str]) -> List:
         [_btn("Add", kind="success"), _btn("Edit", kind="warn"), _btn("Delete", kind="danger")],
     ], accent=P["green"])
 
-    row = [card]
-    first = mascot.first_frame()
-    if first:
-        row.append(sg.Column(
-            [[sg.Image(filename=first, key="-MASCOT-", background_color=P["panel"],
-                       pad=((14, 6), (6, 0)))]],
-            background_color=P["panel"], pad=(0, 0), vertical_alignment="top",
-        ))
-    return _page([row])
+    return _page([[card]])
 
 
 def build_settings_tab(config: dict) -> List:
@@ -547,7 +539,9 @@ def build_settings_tab(config: dict) -> List:
         [_t("UI Theme"),
          sg.Push(background_color=P["card"]),
          _combo(["WizDark", "WizLight"], config.get("ui_theme", "WizDark"),
-                "-THEME-", enable_events=True, size=(10, 1), pad=(6, (4, 10)))],
+                "-THEME-", enable_events=True, size=(10, 1), pad=(6, (4, 4)))],
+        [_chk("Show the dancing mascot", config.get("mascot_enabled", True),
+              "-MASCOT-ON-", enable_events=True, pad=(6, (2, 10)))],
     ], accent=P["accent"])
 
     discord = _card("Discord Rich Presence", [
@@ -1090,6 +1084,7 @@ def build_window(config: dict, accounts: List[Account], log_file_path: Optional[
     ]
     content = _panel(
         [pages], bg=panel, pad=((0, 12), (0, 6)), expand_x=True, expand_y=True,
+        key="-CONTENT-",
     )
 
     main_col = sg.Column([[header], [content]], background_color=bg, pad=(0, 0),
@@ -1125,8 +1120,7 @@ def build_window(config: dict, accounts: List[Account], log_file_path: Optional[
         window[f"-NAVCHIP-{cid}-"].Widget.configure(anchor="center")
 
     _style_inputs(window)
-    if "-MASCOT-" in window.AllKeysDict:
-        mascot.start_animation(window)
+    mascot.start(window, config)
 
     # Don't let the search box grab the initial focus (that would wipe its placeholder)
     window.TKroot.focus_set()

@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Dict, Any
 
 APP_NAME = "QuickLauncher"
-APP_VERSION = "0.3.6"
+APP_VERSION = "0.3.7"
 
 # Where updates / issue reports go. (Older configs pointed at the upstream author's repo.)
 DEFAULT_GITHUB_REPO = "Kayaniu-xD/QuickLauncher"
@@ -50,6 +50,10 @@ DEFAULT_CONFIG = {
     "log_backup_count": 5,
     "debug_mode": False,
     
+    # Dancing mascot in the middle of the pages (opacity 0.1 - 1.0)
+    "mascot_enabled": True,
+    "mascot_opacity": 0.7,
+
     # UI Theme
     "ui_theme": "WizDark",
     "ui_dark_theme": "WizDark",
